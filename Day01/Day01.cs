@@ -28,7 +28,7 @@ public class Day01
                 .Where(x => x.Index > -1)
                 .OrderBy(x => x.Index);
 
-            if (found.Any() && (index == -1) || (found.First().Index < index))
+            if (found.Any() && ((index == -1) || (found.First().Index < index)))
             {
                 return numbers[found.First().Key].ToCharArray()[0];
             }
