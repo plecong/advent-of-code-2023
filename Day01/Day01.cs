@@ -17,32 +17,29 @@ public class Day01
         { "nine", "9" }
     };
 
-    public char FirstNumber(string value)
+    public char FirstNumber(string value, bool includeWords = false)
     {
-        char firstDigit = '0';
-        string beforeFirst = value;
-        var digits = value.Where(char.IsDigit);
+        var index = value.IndexOfAny(numbers.Values.Select(x => x.ToCharArray()[0]).ToArray());
 
-        if (digits.Any())
+        if (includeWords)
         {
-            firstDigit = digits.First();
-            var firstIndex = value.IndexOf(firstDigit);
-            beforeFirst = value.Substring(0, firstIndex);
+            var found = numbers.Keys
+                .Select(x => (Key: x, Index: value.IndexOf(x)))
+                .Where(x => x.Index > -1)
+                .OrderBy(x => x.Index);
+
+            if (found.Any() && (index == -1) || (found.First().Index < index))
+            {
+                return numbers[found.First().Key].ToCharArray()[0];
+            }
         }
 
-        var found = numbers.Keys
-            .Select(x => (Key: x, Index: beforeFirst.IndexOf(x)))
-            .Where(x => x.Index > -1)
-            .OrderBy(x => x.Index);
+        if (index > -1)
+        {
+            return value.ToCharArray()[index];
+        }
 
-        if (found.Any())
-        {
-            return numbers[found.First().Key].ToCharArray()[0];
-        }
-        else
-        {
-            return firstDigit;
-        }
+        return '0';
     }
 
     public char LastNumber(string value)
@@ -86,7 +83,8 @@ public class Day01
 
     public int Part2(IEnumerable<string>? input = null) =>
          (input ?? Input)
-            .Select(x => new string([FirstNumber(x), LastNumber(x)]))
+            .Where(x => !string.IsNullOrWhiteSpace(x))
+            .Select(x => new string([FirstNumber(x, true), LastNumber(x)]))
             .Select(x => int.Parse(x))
             .Sum();
 }
@@ -119,7 +117,7 @@ public class Day01Test
     {
         var day = new Day01();
         var input = "two1nine";
-        var output = (day.FirstNumber(input), day.LastNumber(input));
+        var output = (day.FirstNumber(input, true), day.LastNumber(input));
         Assert.Equal(('2', '9'), output);
     }
 
@@ -128,7 +126,7 @@ public class Day01Test
     {
         var day = new Day01();
         var input = "xtwone3four";
-        var output = (day.FirstNumber(input), day.LastNumber(input));
+        var output = (day.FirstNumber(input, true), day.LastNumber(input));
         Assert.Equal(('2', '4'), output);
     }
 
@@ -137,7 +135,7 @@ public class Day01Test
     {
         var day = new Day01();
         var input = "zoneight234";
-        var output = (day.FirstNumber(input), day.LastNumber(input));
+        var output = (day.FirstNumber(input, true), day.LastNumber(input));
         Assert.Equal(('1', '4'), output);
     }
 
