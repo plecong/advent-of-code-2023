@@ -1,17 +1,23 @@
 ﻿using Xunit;
 using AdventOfCode2023.Utils;
-using System.Security.Cryptography.X509Certificates;
 
 namespace AdventOfCode023;
 
 public record Grab(int Red, int Green, int Blue)
 {
     public bool Possible(Grab max) => max.Red >= Red && max.Green >= Green && max.Blue >= Blue;
+
+    public int Power() => Red * Green * Blue;
 }
 
 public record Game(int Id, List<Grab> Grabs)
 {
     public bool Possible(Grab max) => Grabs.All(x => x.Possible(max));
+
+    public Grab Fewest() => new Grab(
+        Grabs.Select(x => x.Red).Max(),
+        Grabs.Select(x => x.Green).Max(),
+        Grabs.Select(x => x.Blue).Max());
 }
 
 public static class Extension
@@ -50,6 +56,9 @@ public class Day02
 
     public int Part1(IEnumerable<string> lines, Grab max) =>
         lines.Select(ParseGame).Where(x => x.Possible(max)).Select(x => x.Id).Sum();
+
+    public int Part2(IEnumerable<string> lines) =>
+        lines.Select(ParseGame).Select(x => x.Fewest().Power()).Sum();
 
 }
 
@@ -105,7 +114,7 @@ public class Day02Test
     }
 
     [Fact]
-    public void TestSample()
+    public void SamplePart1()
     {
         var output = day.Part1(Sample, new Grab(12, 13, 14));
         Assert.Equal(8, output);
@@ -116,5 +125,32 @@ public class Day02Test
     {
         var output = day.Part1(File.ReadLines("input.txt"), new Grab(12, 13, 14));
         Assert.Equal(2771, output);
+    }
+
+    [Fact]
+    public void FewestGame()
+    {
+        var output = Sample.Select(x => day.ParseGame(x)).Select(x => x.Fewest());
+        Assert.Equal(new List<Grab>() {
+            new Grab(4, 2, 6),
+            new Grab(1, 3, 4),
+            new Grab(20, 13, 6),
+            new Grab(14, 3, 15),
+            new Grab(6, 3, 2)
+        }, output);
+    }
+
+    [Fact]
+    public void SamplePart2()
+    {
+        var output = day.Part2(Sample);
+        Assert.Equal(2286, output);
+    }
+
+    [Fact]
+    public void Part2()
+    {
+        var output = day.Part2(File.ReadLines("input.txt"));
+        Assert.Equal(70924, output);
     }
 }
