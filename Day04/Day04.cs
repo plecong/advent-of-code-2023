@@ -11,6 +11,12 @@ public class Card
     public ISet<int> Have { get; init; }
     public int OverlapCount => Have.Intersect(Winning).Count();
     public int Points => OverlapCount == 0 ? 0 : (int)Math.Pow(2, OverlapCount - 1);
+    public int Count { get; set; } = 1;
+
+    public void Increment(int value = 1)
+    {
+        Count = Count + value;
+    }
 
     public Card(string line)
     {
@@ -32,6 +38,22 @@ public class Solution
 {
     public int Part1(IEnumerable<string> input) =>
         input.Select(x => new Card(x)).Sum(x => x.Points);
+
+    public int Part2(IEnumerable<string> input)
+    {
+        var cards = input.Select(x => new Card(x)).ToList();
+
+        // iterate through each card and increment counts down
+        foreach (var card in cards)
+        {
+            for (var i = 0; i < card.OverlapCount && card.Id + i < cards.Count; i++)
+            {
+                cards[card.Id + i].Increment(card.Count);
+            }
+        }
+
+        return cards.Sum(x => x.Count);
+    }
 }
 
 public class Test
@@ -81,12 +103,14 @@ public class Test
     [Fact]
     public void Part2Sample()
     {
-        Assert.True(true);
+        var output = solution.Part2(Sample);
+        Assert.Equal(30, output);
     }
 
     [Fact]
     public void Part2()
     {
-        Assert.True(true);
+        var output = solution.Part2(Input);
+        Assert.Equal(6284877, output);
     }
 }
