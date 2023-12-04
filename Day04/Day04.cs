@@ -2,9 +2,9 @@
 using AdventOfCode2023.Utils;
 using System.Text.RegularExpressions;
 
-namespace AdventOfCode023.Day04;
+namespace AdventOfCode2023.Day04;
 
-public class Card
+internal class Card
 {
     public int Id { get; init; }
     public int Overlap { get; init; }
@@ -34,7 +34,7 @@ public class Card
     }
 }
 
-public class Solution
+internal class Solution
 {
     public int Part1(IEnumerable<string> input) =>
         input.Select(x => new Card(x)).Sum(x => x.Points);
@@ -60,7 +60,7 @@ public class Test
 {
     private Solution solution = new Solution();
 
-    public IEnumerable<string> Sample
+    private IEnumerable<string> Sample
     {
         get => """
             Card 1: 41 48 83 86 17 | 83 86  6 31 17  9 48 53
@@ -72,13 +72,13 @@ public class Test
             """.ReadLines();
     }
 
-    public IEnumerable<string> Input
+    private IEnumerable<string> Input
     {
         get => File.ReadAllLines("input.txt");
     }
 
     [Fact]
-    public void ParseCard()
+    public void TestParseCard()
     {
         var card = new Card("Card 1: 41 48 83 86 17 | 83 86  6 31 17  9 48 53");
         Assert.Equal(1, card.Id);

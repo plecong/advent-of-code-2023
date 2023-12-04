@@ -1,9 +1,9 @@
 ﻿using Xunit;
 using AdventOfCode2023.Utils;
 
-namespace AdventOfCode023.Day03;
+namespace AdventOfCode2023.Day03;
 
-public class Part
+internal class Part
 {
     public IList<char> Chars { get; } = new List<char>();
     public int Value { get => int.Parse(new string(Chars.ToArray())); }
@@ -14,13 +14,13 @@ public class Part
     }
 }
 
-public class Cell(char value)
+internal class Cell(char value)
 {
     public char Value { get; } = value;
     public Part? Part { get; set; }
 }
 
-public class Day03
+internal class Solution
 {
     private Cell[][]? matrix;
 
@@ -177,9 +177,9 @@ public class Day03
 
 public class Test
 {
-    private Day03 day = new Day03();
+    private Solution solution = new Solution();
 
-    public IEnumerable<string> Sample
+    private IEnumerable<string> Sample
     {
         get => """
             467..114..
@@ -195,36 +195,36 @@ public class Test
             """.ReadLines();
     }
 
-    public IEnumerable<string> Input
+    private IEnumerable<string> Input
     {
         get => File.ReadAllLines("input.txt");
     }
 
     [Fact]
-    public void TestPart1Sample()
+    public void Part1Sample()
     {
-        var output = day.Part1(Sample);
+        var output = solution.Part1(Sample);
         Assert.Equal(4361, output);
     }
 
     [Fact]
-    public void TestPart1()
+    public void Part1()
     {
-        var output = day.Part1(Input);
+        var output = solution.Part1(Input);
         Assert.Equal(544664, output);
     }
 
     [Fact]
-    public void TestPart2Sample()
+    public void Part2Sample()
     {
-        var output = day.Part2(Sample);
+        var output = solution.Part2(Sample);
         Assert.Equal(467835, output);
     }
 
     [Fact]
-    public void TestPart2()
+    public void Part2()
     {
-        var output = day.Part2(Input);
+        var output = solution.Part2(Input);
         Assert.Equal(84495585, output);
     }
 }

@@ -1,9 +1,9 @@
-﻿using System.Text.RegularExpressions;
-using Xunit;
+﻿using Xunit;
+using AdventOfCode2023.Utils;
 
-namespace AdventOfCode2023;
+namespace AdventOfCode2023.Day01;
 
-public class Day01
+internal class Solution
 {
     private Dictionary<string, string> numbers = new Dictionary<string, string> {
         { "one", "1" },
@@ -70,10 +70,8 @@ public class Day01
         }
     }
 
-    private IEnumerable<string> Input { get { return File.ReadLines("input.txt"); } }
-
-    public int Part1(IEnumerable<string>? input = null) =>
-        (input ?? Input)
+    public int Part1(IEnumerable<string> input) =>
+        input
             .Select(x => x.Where(char.IsDigit).ToArray())
             .Where(x => x.Length > 0)
             .Select(x => new string([x.First(), x.Last()]))
@@ -81,33 +79,58 @@ public class Day01
             .Sum();
 
 
-    public int Part2(IEnumerable<string>? input = null) =>
-         (input ?? Input)
+    public int Part2(IEnumerable<string> input) =>
+         input
             .Where(x => !string.IsNullOrWhiteSpace(x))
             .Select(x => new string([FirstNumber(x, true), LastNumber(x)]))
             .Select(x => int.Parse(x))
             .Sum();
 }
 
-public class Day01Test
+public class Test
 {
-    [Fact]
-    public void SamplePart1()
+    private Solution solution = new Solution();
+
+    private IEnumerable<string> SamplePart1
     {
-        var sample = @"
+        get => """
             1abc2
             pqr3stu8vwx
             a1b2c3d4e5f
-            treb7uchet";
+            treb7uchet
+            """.ReadLines();
+    }
 
-        var output = new Day01().Part1(sample.Split("\n"));
+    private IEnumerable<string> SamplePart2
+    {
+        get => """
+            two1nine
+            eightwothree
+            abcone2threexyz
+            xtwone3four
+            4nineeightseven2
+            zoneight234
+            7pqrstsixteen
+            """.ReadLines();
+    }
+
+    private IEnumerable<string> Input
+    {
+        get => File.ReadAllLines("input.txt");
+    }
+
+
+    [Fact]
+    public void Part1Sample()
+    {
+        var output = solution.Part1(SamplePart1);
         Assert.Equal(142, output);
     }
 
     [Fact]
     public void Part1()
     {
-        var output = new Day01().Part1();
+        var output = solution.Part1(Input);
         Assert.Equal(54388, output);
     }
 
@@ -115,7 +138,7 @@ public class Day01Test
     [Fact]
     public void TestReplace()
     {
-        var day = new Day01();
+        var day = solution;
         var input = "two1nine";
         var output = (day.FirstNumber(input, true), day.LastNumber(input));
         Assert.Equal(('2', '9'), output);
@@ -124,7 +147,7 @@ public class Day01Test
     [Fact]
     public void TestReplaceOverlap()
     {
-        var day = new Day01();
+        var day = solution;
         var input = "xtwone3four";
         var output = (day.FirstNumber(input, true), day.LastNumber(input));
         Assert.Equal(('2', '4'), output);
@@ -133,32 +156,23 @@ public class Day01Test
     [Fact]
     public void TestReplaceOverlap2()
     {
-        var day = new Day01();
+        var day = solution;
         var input = "zoneight234";
         var output = (day.FirstNumber(input, true), day.LastNumber(input));
         Assert.Equal(('1', '4'), output);
     }
 
     [Fact]
-    public void SamplePart2()
+    public void Part2Sample()
     {
-        var sample = @"
-            two1nine
-            eightwothree
-            abcone2threexyz
-            xtwone3four
-            4nineeightseven2
-            zoneight234
-            7pqrstsixteen";
-
-        var output = new Day01().Part2(sample.Split("\n"));
+        var output = solution.Part2(SamplePart2);
         Assert.Equal(281, output);
     }
 
     [Fact]
     public void Part2()
     {
-        var output = new Day01().Part2();
+        var output = solution.Part2(Input);
         Assert.Equal(53515, output);
     }
 }
