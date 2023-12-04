@@ -9,12 +9,7 @@ internal class Card
     public int Id { get; init; }
     public int Overlap { get; init; }
     public int Points => Overlap == 0 ? 0 : (int)Math.Pow(2, Overlap - 1);
-    public int Count { get; set; } = 1;
-
-    public void Increment(int value = 1)
-    {
-        Count = Count + value;
-    }
+    public int Count { get; private set; } = 1;
 
     public Card(string line)
     {
@@ -32,6 +27,8 @@ internal class Card
         Id = int.Parse(match.Groups[1].Value);
         Overlap = winning.Intersect(have).Count();
     }
+
+    public void Increment(int value = 1) => Count = Count + value;
 }
 
 internal class Solution
@@ -86,30 +83,19 @@ public class Test
     }
 
     [Fact]
-    public void Part1Sample()
-    {
-        var output = solution.Part1(Sample);
-        Assert.Equal(13, output);
-    }
+    public void Part1Sample() =>
+        Assert.Equal(13, solution.Part1(Sample));
 
     [Fact]
-    public void Part1()
-    {
-        var output = solution.Part1(Input);
-        Assert.Equal(26443, output);
-    }
+    public void Part1() =>
+        Assert.Equal(26443, solution.Part1(Input));
+
 
     [Fact]
-    public void Part2Sample()
-    {
-        var output = solution.Part2(Sample);
-        Assert.Equal(30, output);
-    }
+    public void Part2Sample() =>
+        Assert.Equal(30, solution.Part2(Sample));
 
     [Fact]
-    public void Part2()
-    {
-        var output = solution.Part2(Input);
-        Assert.Equal(6284877, output);
-    }
+    public void Part2() =>
+        Assert.Equal(6284877, solution.Part2(Input));
 }

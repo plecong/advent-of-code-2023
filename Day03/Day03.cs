@@ -164,30 +164,18 @@ public class Test
     }
 
     [Fact]
-    public void Part1Sample()
-    {
-        var output = solution.Part1(Sample);
-        Assert.Equal(4361, output);
-    }
+    public void Part1Sample() =>
+        Assert.Equal(4361, solution.Part1(Sample));
 
     [Fact]
-    public void Part1()
-    {
-        var output = solution.Part1(Input);
-        Assert.Equal(544664, output);
-    }
+    public void Part1() =>
+        Assert.Equal(544664, solution.Part1(Input));
 
     [Fact]
-    public void Part2Sample()
-    {
-        var output = solution.Part2(Sample);
-        Assert.Equal(467835, output);
-    }
+    public void Part2Sample() =>
+        Assert.Equal(467835, solution.Part2(Sample));
 
     [Fact]
-    public void Part2()
-    {
-        var output = solution.Part2(Input);
-        Assert.Equal(84495585, output);
-    }
+    public void Part2() =>
+        Assert.Equal(84495585, solution.Part2(Input));
 }
