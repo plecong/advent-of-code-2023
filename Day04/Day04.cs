@@ -7,9 +7,7 @@ namespace AdventOfCode023.Day04;
 public class Card
 {
     public int Id { get; init; }
-    public ISet<int> Winning { get; init; }
-    public ISet<int> Have { get; init; }
-    public int Overlap => Have.Intersect(Winning).Count();
+    public int Overlap { get; init; }
     public int Points => Overlap == 0 ? 0 : (int)Math.Pow(2, Overlap - 1);
     public int Count { get; set; } = 1;
 
@@ -28,9 +26,11 @@ public class Card
             throw new NotSupportedException();
         }
 
+        var winning = match.Groups[2].Value.Split(' ', StringSplitOptions.RemoveEmptyEntries).Select(int.Parse).ToHashSet();
+        var have = match.Groups[3].Value.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries).Select(int.Parse).ToHashSet();
+
         Id = int.Parse(match.Groups[1].Value);
-        Winning = match.Groups[2].Value.Split(' ', StringSplitOptions.RemoveEmptyEntries).Select(int.Parse).ToHashSet();
-        Have = match.Groups[3].Value.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries).Select(int.Parse).ToHashSet();
+        Overlap = winning.Intersect(have).Count();
     }
 }
 
@@ -46,8 +46,7 @@ public class Solution
         // iterate through each card and increment counts down
         foreach (var card in cards)
         {
-            int overlap = card.Overlap;
-            for (var i = 0; i < overlap && card.Id + i < cards.Count; i++)
+            for (var i = 0; i < card.Overlap && card.Id + i < cards.Count; i++)
             {
                 cards[card.Id + i].Increment(card.Count);
             }
@@ -83,8 +82,7 @@ public class Test
     {
         var card = new Card("Card 1: 41 48 83 86 17 | 83 86  6 31 17  9 48 53");
         Assert.Equal(1, card.Id);
-        Assert.Equal(5, card.Winning.Count);
-        Assert.Equal(8, card.Have.Count);
+        Assert.Equal(4, card.Overlap);
     }
 
     [Fact]
