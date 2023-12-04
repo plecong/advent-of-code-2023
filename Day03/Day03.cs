@@ -1,7 +1,7 @@
 ﻿using Xunit;
 using AdventOfCode2023.Utils;
 
-namespace AdventOfCode023;
+namespace AdventOfCode023.Day03;
 
 public class Part
 {
@@ -175,7 +175,7 @@ public class Day03
 
 }
 
-public class Day02Test
+public class Test
 {
     private Day03 day = new Day03();
 
