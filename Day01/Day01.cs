@@ -5,7 +5,7 @@ namespace AdventOfCode2023.Day01;
 
 internal class Solution
 {
-    private Dictionary<string, string> numbers = new Dictionary<string, string> {
+    private Dictionary<string, string> numbers = new() {
         { "one", "1" },
         { "two", "2" },
         { "three", "3" },
@@ -89,7 +89,7 @@ internal class Solution
 
 public class Test
 {
-    private Solution solution = new Solution();
+    private Solution solution = new();
 
     private IEnumerable<string> SamplePart1
     {

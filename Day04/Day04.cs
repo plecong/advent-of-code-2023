@@ -58,7 +58,7 @@ internal class Solution
 
 public class Test
 {
-    private Solution solution = new Solution();
+    private Solution solution = new();
 
     private IEnumerable<string> Sample
     {

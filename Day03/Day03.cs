@@ -5,13 +5,10 @@ namespace AdventOfCode2023.Day03;
 
 internal class Part
 {
-    public IList<char> Chars { get; } = new List<char>();
+    public List<char> Chars { get; } = new();
     public int Value { get => int.Parse(new string(Chars.ToArray())); }
-    public bool Adjacent { get; set; }
-    public void MarkAdjacent()
-    {
-        Adjacent = true;
-    }
+    public bool Adjacent { get; private set; }
+    public void MarkAdjacent() => Adjacent = true;
 }
 
 internal class Cell(char value)
@@ -20,147 +17,113 @@ internal class Cell(char value)
     public Part? Part { get; set; }
 }
 
-internal class Solution
+internal class Matrix
 {
-    private Cell[][]? matrix;
+    private Cell[][] matrix;
+    public List<Part> Parts { get; } = new();
+    public int Rows => matrix.Length;
+    public int Cols => matrix[0].Length;
 
-    private IList<Part> parts = new List<Part>();
-
-    public void LoadMatrix(IEnumerable<string> input)
+    public Matrix(IEnumerable<string> input)
     {
-        // read input into matrix
         matrix = input
-                 .Select(x =>
-                     x.ToCharArray()
-                         .Select(x => new Cell(x))
-                         .ToArray())
-                 .ToArray();
+            .Select(x =>
+                x.ToCharArray()
+                    .Select(x => new Cell(x))
+                    .ToArray())
+            .ToArray();
 
         // iterate through line by line to find number and spans
         foreach (var line in matrix)
         {
             for (var col = 0; col < line.Length; col++)
             {
-                var cell = line[col];
+                Cell cell = line[col];
+                Cell? previous = col > 0 ? line[col - 1] : null;
+
                 if (char.IsDigit(cell.Value))
                 {
-                    if (col > 0)
+                    if (previous?.Part != null)
                     {
-                        // check previous
-                        var previous = line[col - 1];
-                        if (previous.Part != null)
-                        {
-                            cell.Part = previous.Part;
-                            cell.Part.Chars.Add(cell.Value);
-                            continue;
-                        }
-                        else
-                        {
-                            // create a new part
-                            cell.Part = new Part();
-                            cell.Part.Chars.Add(cell.Value);
-                            parts.Add(cell.Part);
-                        }
+                        cell.Part = previous.Part;
                     }
                     else
                     {
-                        // create a new part
-                        cell.Part = new Part();
-                        cell.Part.Chars.Add(cell.Value);
-                        parts.Add(cell.Part);
+                        cell.Part = new();
+                        Parts.Add(cell.Part);
                     }
+                    cell.Part.Chars.Add(cell.Value);
                 }
             }
         }
     }
 
+    public char GetValue(int row, int col) =>
+        matrix[row][col].Value;
+
+
+    public Part? this[(int row, int col) coord]
+    {
+        get =>
+            (coord.row < 0 || coord.row >= matrix.Length
+            || coord.col < 0 || coord.col >= matrix[coord.row].Length)
+                ? null
+                : matrix[coord.row][coord.col].Part;
+    }
+}
+
+internal class Solution
+{
     public int Part1(IEnumerable<string> input)
     {
-        LoadMatrix(input);
-        ArgumentNullException.ThrowIfNull(matrix);
+        var matrix = new Matrix(input);
 
         // iterate through line by line to find symbols 
-        for (var row = 0; row < matrix.Length; row++)
+        for (var row = 0; row < matrix.Rows; row++)
         {
-            var line = matrix[row];
-            for (var col = 0; col < line.Length; col++)
+            for (var col = 0; col < matrix.Cols; col++)
             {
-                var cell = line[col];
-
-                if (!char.IsDigit(cell.Value) && cell.Value != '.')
+                var cell = matrix.GetValue(row, col);
+                if (!char.IsDigit(cell) && cell != '.')
                 {
                     // check adjacency
-                    if (row > 0)
-                    {
-                        var above = matrix[row - 1];
-                        if (col > 0) { above[col - 1].Part?.MarkAdjacent(); }
-                        above[col].Part?.MarkAdjacent();
-                        if (col < above.Length - 1) { above[col + 1].Part?.MarkAdjacent(); }
-                    }
-
-                    if (col > 0) { line[col - 1].Part?.MarkAdjacent(); }
-                    line[col].Part?.MarkAdjacent();
-                    if (col < line.Length - 1) { line[col + 1].Part?.MarkAdjacent(); }
-
-                    if (row < matrix.Length - 1)
-                    {
-                        var below = matrix[row + 1];
-                        if (col > 0) { below[col - 1].Part?.MarkAdjacent(); }
-                        below[col].Part?.MarkAdjacent();
-                        if (col < below.Length - 1) { below[col + 1].Part?.MarkAdjacent(); }
-                    }
+                    matrix[(row - 1, col - 1)]?.MarkAdjacent();
+                    matrix[(row - 1, col + 0)]?.MarkAdjacent();
+                    matrix[(row - 1, col + 1)]?.MarkAdjacent();
+                    matrix[(row + 0, col - 1)]?.MarkAdjacent();
+                    matrix[(row + 0, col + 0)]?.MarkAdjacent();
+                    matrix[(row + 0, col + 1)]?.MarkAdjacent();
+                    matrix[(row + 1, col - 1)]?.MarkAdjacent();
+                    matrix[(row + 1, col + 0)]?.MarkAdjacent();
+                    matrix[(row + 1, col + 1)]?.MarkAdjacent();
                 }
             }
         }
 
-        return parts.Where(x => x.Adjacent).Sum(x => x.Value);
+        return matrix.Parts.Where(x => x.Adjacent).Sum(x => x.Value);
     }
 
     public int Part2(IEnumerable<string> input)
     {
-        LoadMatrix(input);
-        ArgumentNullException.ThrowIfNull(matrix);
-
+        var matrix = new Matrix(input);
         var ratios = new List<int>();
 
-        for (var row = 0; row < matrix.Length; row++)
+        for (var row = 0; row < matrix.Rows; row++)
         {
-            var line = matrix[row];
-            for (var col = 0; col < line.Length; col++)
+            for (var col = 0; col < matrix.Cols; col++)
             {
-                var cell = line[col];
                 var adjacent = new HashSet<Part>();
-
-                void AddIfNotNull(Part? part)
+                if (matrix.GetValue(row, col) == '*')
                 {
-                    if (part != null)
-                    {
-                        adjacent.Add(part);
-                    }
-                }
-
-                if (cell.Value == '*')
-                {
-                    // check adjacency
-                    if (row > 0)
-                    {
-                        var above = matrix[row - 1];
-                        if (col > 0) { AddIfNotNull(above[col - 1].Part); }
-                        AddIfNotNull(above[col].Part);
-                        if (col < above.Length - 1) { AddIfNotNull(above[col + 1].Part); }
-                    }
-
-                    if (col > 0) { AddIfNotNull(line[col - 1].Part); }
-                    AddIfNotNull(line[col].Part);
-                    if (col < line.Length - 1) { AddIfNotNull(line[col + 1].Part); }
-
-                    if (row < matrix.Length - 1)
-                    {
-                        var below = matrix[row + 1];
-                        if (col > 0) { AddIfNotNull(below[col - 1].Part); }
-                        AddIfNotNull(below[col].Part);
-                        if (col < below.Length - 1) { AddIfNotNull(below[col + 1].Part); }
-                    }
+                    adjacent.AddNonNull(matrix[(row - 1, col - 1)]);
+                    adjacent.AddNonNull(matrix[(row - 1, col + 0)]);
+                    adjacent.AddNonNull(matrix[(row - 1, col + 1)]);
+                    adjacent.AddNonNull(matrix[(row + 0, col - 1)]);
+                    adjacent.AddNonNull(matrix[(row + 0, col + 0)]);
+                    adjacent.AddNonNull(matrix[(row + 0, col + 1)]);
+                    adjacent.AddNonNull(matrix[(row + 1, col - 1)]);
+                    adjacent.AddNonNull(matrix[(row + 1, col + 0)]);
+                    adjacent.AddNonNull(matrix[(row + 1, col + 1)]);
                 }
 
                 if (adjacent.Count == 2)
@@ -177,7 +140,7 @@ internal class Solution
 
 public class Test
 {
-    private Solution solution = new Solution();
+    private Solution solution = new();
 
     private IEnumerable<string> Sample
     {
