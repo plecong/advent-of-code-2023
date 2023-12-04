@@ -15,5 +15,15 @@ public static class Extensions
         second = list.Count > 1 ? list[1] : default(T); // or throw
         rest = list.Skip(2).ToList();
     }
+
+    public static IEnumerable<string> ReadLines(this string value)
+    {
+        var reader = new StringReader(value);
+        string? line;
+        while ((line = reader.ReadLine()) != null)
+        {
+            yield return line;
+        }
+    }
 }
 
