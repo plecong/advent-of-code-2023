@@ -9,8 +9,8 @@ public class Card
     public int Id { get; init; }
     public ISet<int> Winning { get; init; }
     public ISet<int> Have { get; init; }
-    public int OverlapCount => Have.Intersect(Winning).Count();
-    public int Points => OverlapCount == 0 ? 0 : (int)Math.Pow(2, OverlapCount - 1);
+    public int Overlap => Have.Intersect(Winning).Count();
+    public int Points => Overlap == 0 ? 0 : (int)Math.Pow(2, Overlap - 1);
     public int Count { get; set; } = 1;
 
     public void Increment(int value = 1)
@@ -46,7 +46,8 @@ public class Solution
         // iterate through each card and increment counts down
         foreach (var card in cards)
         {
-            for (var i = 0; i < card.OverlapCount && card.Id + i < cards.Count; i++)
+            int overlap = card.Overlap;
+            for (var i = 0; i < overlap && card.Id + i < cards.Count; i++)
             {
                 cards[card.Id + i].Increment(card.Count);
             }
