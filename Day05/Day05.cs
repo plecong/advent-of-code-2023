@@ -15,7 +15,7 @@ internal record Range(long Start, long Length)
         Start < range.End && range.Start < End;
 
     public bool Intersects(long position) =>
-        position >= Start && position < Start + Length;
+        position >= Start && position < End;
 
     public Range Intersection(Range other) =>
         new Range(
@@ -73,7 +73,7 @@ internal class Map
 
     /// <summary>
     /// Projects the provided set of ranges into a new list of ranges by applying
-    /// the mappers 
+    /// the mappers to each of the ranges
     /// </summary>
     /// <param name="ranges"></param>
     /// <returns></returns>
