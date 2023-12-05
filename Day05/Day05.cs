@@ -1,142 +1,134 @@
 ﻿namespace AdventOfCode2023.Day05;
 
-using System.Linq.Expressions;
-using System.Text.RegularExpressions;
 using AdventOfCode2023.Utils;
 
-internal record Mapper(long Destination, long Source, long Range);
+internal record Mapper(long Destination, long Start, long Length) : Range(Start, Length)
+{
+    public long Offset { get => Destination - Start; }
+}
 
 internal record Range(long Start, long Length)
 {
+    public long End { get => Start + Length; }
 
+    public bool Intersects(Range range) =>
+        Start < range.End && range.Start < End;
+
+    public bool Intersects(long position) =>
+        position >= Start && position < Start + Length;
+
+    public Range Intersection(Range other) =>
+        new Range(
+            Math.Max(Start, other.Start),
+            Math.Min(other.End, End) - Math.Max(Start, other.Start));
+
+    /// <summary>
+    /// Applies the provided mappers to the range and returns a new list of ranges
+    /// including offsets applied for the mappers 
+    /// </summary>
+    /// <param name="mappers"></param>
+    /// <returns></returns>
+    public IEnumerable<Range> Split(IEnumerable<Mapper> mappers)
+    {
+        // find all the intersected segments from the mappers
+        var segments = mappers
+            .Where(x => x.Intersects(this))
+            .Select(x => (Mapper: x, Range: Intersection(x)))
+            .OrderBy(x => x.Range.Start);
+
+        var current = Start;
+
+        foreach (var (mapper, range) in segments)
+        {
+            if (current < range.Start)
+            {
+                // return the gap from current to range
+                yield return new Range(current, range.Start - current);
+                current = range.Start;
+            }
+
+            // return the range with offset applied
+            yield return new Range(range.Start + mapper.Offset, range.Length);
+            current = range.Start + range.Length;
+        }
+
+        if (current < End)
+        {
+            yield return new Range(current, End - current);
+        }
+    }
 }
 
 internal class Map
 {
     public List<Mapper> Mappers { get; set; } = new();
 
-    public long Translate(long position)
-    {
-        var mapper = Mappers.Where(x => position >= x.Source && position < x.Source + x.Range).FirstOrDefault();
-        if (mapper != null)
-        {
-            var offset = mapper.Destination - mapper.Source;
-            return position + offset;
-        }
-        else
-        {
-            return position;
-        }
-    }
+    /// <summary>
+    /// Translate a position into a new position by applying the mappers
+    /// </summary>
+    /// <param name="position"></param>
+    /// <returns></returns>
+    public long Translate(long position) =>
+        position + (Mappers.Where(x => x.Intersects(position)).FirstOrDefault()?.Offset ?? 0);
 
-    public long Reverse(long position)
-    {
-        var mapper = Mappers.Where(x => position >= x.Destination && position < x.Destination + x.Range).FirstOrDefault();
-        if (mapper != null)
-        {
-            var offset = mapper.Source - mapper.Destination;
-            return position + offset;
-        }
-        else
-        {
-            return position;
-        }
-    }
-}
-
-internal record Seed(long Start, long Length)
-{
-    public bool Contains(long index) => index >= Start && index < Start + Length;
+    /// <summary>
+    /// Projects the provided set of ranges into a new list of ranges by applying
+    /// the mappers 
+    /// </summary>
+    /// <param name="ranges"></param>
+    /// <returns></returns>
+    public List<Range> Project(IEnumerable<Range> ranges) =>
+        ranges.SelectMany(range => range.Split(Mappers)).ToList();
 }
 
 internal class Solution
 {
-    List<long> seeds;
-    List<Map> maps = new();
-
-    private void LoadInput(IEnumerable<string> input)
+    private (IEnumerable<long>, IEnumerable<Map>) LoadInput(IEnumerable<string> input)
     {
         var lines = input.ToList();
 
-        seeds = lines[0].Substring(6).Trim()
-            .Split(" ", StringSplitOptions.RemoveEmptyEntries)
-            .Select(long.Parse)
-            .ToList();
+        var seeds = lines.First()
+            .Substring(7)
+            .Split()
+            .Select(long.Parse);
 
-        Map? current = null;
-        for (var i = 1; i < lines.Count; i++)
-        {
-            if (Regex.IsMatch(lines[i], @"[\w\-]+ map:"))
-            {
-                current = new Map();
-            }
+        var maps = lines
+            .Skip(2)
+            .ChunkBy(x => string.IsNullOrWhiteSpace(x))
+            .Select(x => x
+                .Skip(1)
+                .Select(l => l.Split().Select(long.Parse).ToArray())
+                .Select(l => new Mapper(l[0], l[1], l[2]))
+            )
+            .Select(x => new Map { Mappers = x.ToList() });
 
-            if (string.IsNullOrWhiteSpace(lines[i]) && current != null)
-            {
-                current.Mappers = current.Mappers.OrderBy(x => x.Destination).ToList();
-                maps.Add(current);
-                current = null;
-            }
-
-            var parts = lines[i].Split(" ", StringSplitOptions.RemoveEmptyEntries);
-            if (parts.Length == 3 && current != null)
-            {
-                current.Mappers.Add(new Mapper(long.Parse(parts[0]), long.Parse(parts[1]), long.Parse(parts[2])));
-            }
-        }
-
-        if (current != null)
-        {
-            maps.Add(current);
-        }
-
-
+        return (seeds, maps);
     }
 
     public long Part1(IEnumerable<string> input)
     {
-        LoadInput(input);
-        var plans = seeds.Select(x => maps.Aggregate(x, (pos, cur) => cur.Translate(pos)));
-        return plans.Min();
+        var (seeds, maps) = LoadInput(input);
+
+        return seeds
+            .Select(seed => maps.Aggregate(seed, (pos, map) => map.Translate(pos)))
+            .Min();
     }
 
     public long Part2(IEnumerable<string> input)
     {
-        LoadInput(input);
-        List<long> positions = new();
+        var (seeds, maps) = LoadInput(input);
 
-        var ranges = seeds.Chunk(2).Select(x => new Seed(x[0], x[1])).ToList();
-        maps.Reverse();
-        long current = 0;
+        // load current ranges
+        var ranges = seeds
+            .Chunk(2)
+            .Select(x => new Range(x[0], x[1]))
+            .ToList();
 
-        while (true)
-        {
-            var position = maps.Aggregate(current, (pos, cur) => cur.Reverse(pos));
-
-            if (ranges.Any(x => x.Contains(position)))
-            {
-                break;
-            }
-
-            current++;
-        }
-
-        return current;
-
-
-        // foreach (var seed in )
-        // {
-        //     var start = seed[0];
-        //     var length = seed[1];
-
-        //     for (long i = 0; i < length; i++)
-        //     {
-        //         var current = start + i;
-        //         positions.Add(maps.Aggregate(current, (pos, cur) => cur.Translate(pos)));
-        //     }
-        // }
-
-        // return positions.Min();
+        // fold over each map to take the set of ranges and 
+        // create a new set of mapped ranges based on splits
+        return maps
+            .Aggregate(ranges, (ranges, map) => map.Project(ranges))
+            .Min(x => x.Start);
     }
 
 }

@@ -34,5 +34,36 @@ public static class Extensions
 
         return set.Add(item);
     }
+
+    public static IEnumerable<List<T>> ChunkBy<T>(this IEnumerable<T> values, Func<T, bool> separatorFunc, bool includeSeparator = false)
+    {
+        List<T> chunk = new();
+
+        foreach (var item in values)
+        {
+            if (separatorFunc(item))
+            {
+                if (includeSeparator)
+                {
+                    chunk.Add(item);
+                }
+
+                if (chunk.Count > 0)
+                {
+                    yield return chunk;
+                    chunk = new();
+                }
+            }
+            else
+            {
+                chunk.Add(item);
+            }
+        }
+
+        if (chunk.Count > 0)
+        {
+            yield return chunk;
+        }
+    }
 }
 
