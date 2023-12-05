@@ -59,10 +59,8 @@ internal record Range(long Start, long Length)
     }
 }
 
-internal class Map
+internal record Map(List<Mapper> Mappers)
 {
-    public List<Mapper> Mappers { get; set; } = new();
-
     /// <summary>
     /// Translate a position into a new position by applying the mappers
     /// </summary>
@@ -99,8 +97,9 @@ internal class Solution
                 .Skip(1)
                 .Select(l => l.Split().Select(long.Parse).ToArray())
                 .Select(l => new Mapper(l[0], l[1], l[2]))
+                .ToList()
             )
-            .Select(x => new Map { Mappers = x.ToList() });
+            .Select(x => new Map(x));
 
         return (seeds, maps);
     }
