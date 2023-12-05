@@ -32,7 +32,7 @@ internal record Range(long Start, long Length)
     {
         // find all the intersected segments from the mappers
         var segments = mappers
-            .Where(x => x.Intersects(this))
+            .Where(Intersects)
             .Select(x => (Mapper: x, Range: Intersection(x)))
             .OrderBy(x => x.Range.Start);
 
@@ -59,14 +59,14 @@ internal record Range(long Start, long Length)
     }
 }
 
-internal record Map(List<Mapper> Mappers)
+internal record Map(IList<Mapper> Mappers)
 {
     /// <summary>
     /// Translate a position into a new position by applying the mappers
     /// </summary>
     /// <param name="position"></param>
     /// <returns></returns>
-    public long Translate(long position) =>
+    public long Project(long position) =>
         position + (Mappers.Where(x => x.Intersects(position)).FirstOrDefault()?.Offset ?? 0);
 
     /// <summary>
@@ -75,24 +75,23 @@ internal record Map(List<Mapper> Mappers)
     /// </summary>
     /// <param name="ranges"></param>
     /// <returns></returns>
-    public List<Range> Project(IEnumerable<Range> ranges) =>
-        ranges.SelectMany(range => range.Split(Mappers)).ToList();
+    public IEnumerable<Range> Project(IEnumerable<Range> ranges) =>
+        ranges.SelectMany(range => range.Split(Mappers));
 }
 
 internal class Solution
 {
     private (IEnumerable<long>, IEnumerable<Map>) LoadInput(IEnumerable<string> input)
     {
-        var lines = input.ToList();
-
-        var seeds = lines.First()
+        // parse "seeds: 1 2 3 4" into [1, 2, 3, 4]
+        var seeds = input.First()
             .Substring(7)
             .Split()
             .Select(long.Parse);
 
-        var maps = lines
+        var maps = input
             .Skip(2)
-            .ChunkBy(x => string.IsNullOrWhiteSpace(x))
+            .ChunkBy(string.IsNullOrWhiteSpace)
             .Select(x => x
                 .Skip(1)
                 .Select(l => l.Split().Select(long.Parse).ToArray())
@@ -109,7 +108,7 @@ internal class Solution
         var (seeds, maps) = LoadInput(input);
 
         return seeds
-            .Select(seed => maps.Aggregate(seed, (pos, map) => map.Translate(pos)))
+            .Select(seed => maps.Aggregate(seed, (pos, map) => map.Project(pos)))
             .Min();
     }
 
@@ -120,8 +119,7 @@ internal class Solution
         // load current ranges
         var ranges = seeds
             .Chunk(2)
-            .Select(x => new Range(x[0], x[1]))
-            .ToList();
+            .Select(x => new Range(x[0], x[1]));
 
         // fold over each map to take the set of ranges and 
         // create a new set of mapped ranges based on splits
