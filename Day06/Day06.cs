@@ -13,7 +13,7 @@ internal class Solution
     public int Part1(IEnumerable<string> input)
     {
         var values = input.Select(x =>
-            x.Substring(11).Split(" ", StringSplitOptions.RemoveEmptyEntries).Select(int.Parse)
+            x[11..].Split(" ", StringSplitOptions.RemoveEmptyEntries).Select(int.Parse)
         );
 
         var races = values.First()
