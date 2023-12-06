@@ -44,12 +44,11 @@ internal record Range(long Start, long Length)
             {
                 // return the gap from current to range
                 yield return new Range(current, range.Start - current);
-                current = range.Start;
             }
 
             // return the range with offset applied
             yield return new Range(range.Start + mapper.Offset, range.Length);
-            current = range.Start + range.Length;
+            current = range.End;
         }
 
         if (current < End)
