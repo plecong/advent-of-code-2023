@@ -70,7 +70,7 @@ internal class Solution()
         return network.Nodes.Keys
             .Where(x => x[^1] == 'A')
             .Select(x => network.CycleLength(x, x => x[^1] == 'Z').Steps)
-            .Aggregate(1L, LeastCommonMultiple);
+            .Aggregate(LeastCommonMultiple);
     }
 }
 
