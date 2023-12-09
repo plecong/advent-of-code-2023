@@ -2,7 +2,6 @@
 
 using Xunit;
 using AdventOfCode2023.Utils;
-using System.Linq;
 
 internal class Network
 {
