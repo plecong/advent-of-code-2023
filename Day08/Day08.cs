@@ -19,10 +19,10 @@ internal class Network
             x => (Left: x.Substring(7, 3), Right: x.Substring(12, 3)));
     }
 
-    public (int Steps, string Node) Navigate(string start, Predicate<string> stopFunc)
+    public (long Steps, string Node) Navigate(string start, Predicate<string> stopFunc)
     {
         var current = start;
-        for (var step = 0; step < int.MaxValue; step++)
+        for (long step = 0; step < long.MaxValue; step++)
         {
             var instruction = instructions[step % instructions.Length];
             current = instruction switch
@@ -41,11 +41,11 @@ internal class Network
         return (-1, "");
     }
 
-    public (long Steps, string Node) CycleLength(string start, Predicate<string> stopFunc)
+    public long CycleLength(string start, Predicate<string> stopFunc)
     {
         var (steps, node) = Navigate(start, stopFunc);
         var (cycle, _) = Navigate(node, x => x.Equals(node));
-        return (cycle, node);
+        return cycle;
     }
 }
 
@@ -57,7 +57,7 @@ internal class Solution()
     static long LeastCommonMultiple(long a, long b) =>
         a / GreatestCommonFactor(a, b) * b;
 
-    public int Part1(IEnumerable<string> input)
+    public long Part1(IEnumerable<string> input)
     {
         return new Network(input)
             .Navigate("AAA", x => x.Equals("ZZZ")).Steps;
@@ -69,7 +69,7 @@ internal class Solution()
 
         return network.Nodes.Keys
             .Where(x => x[^1] == 'A')
-            .Select(x => network.CycleLength(x, x => x[^1] == 'Z').Steps)
+            .Select(x => network.CycleLength(x, x => x[^1] == 'Z'))
             .Aggregate(LeastCommonMultiple);
     }
 }
