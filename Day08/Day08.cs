@@ -51,18 +51,11 @@ internal class Network
 
 internal class Solution()
 {
-    static long GreatestCommonFactor(long a, long b)
-    {
-        while (b != 0)
-        {
-            long temp = b;
-            b = a % b;
-            a = temp;
-        }
-        return a;
-    }
+    static long GreatestCommonFactor(long a, long b) =>
+        b == 0 ? a : GreatestCommonFactor(b, a % b);
 
-    static long LeastCommonMultiple(long a, long b) => a / GreatestCommonFactor(a, b) * b;
+    static long LeastCommonMultiple(long a, long b) =>
+        a / GreatestCommonFactor(a, b) * b;
 
     public int Part1(IEnumerable<string> input)
     {
