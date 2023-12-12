@@ -119,8 +119,13 @@ internal class Maze
 
     }
 
-    public Node? Next(Node entry, Direction direction)
+    public Node? Next(Node? entry, Direction direction)
     {
+        if (entry == null)
+        {
+            return null;
+        }
+
         var (row, col) = direction switch
         {
             Direction.NORTH => (entry.Row - 1, entry.Col),
@@ -146,7 +151,7 @@ internal class Maze
     }
 
 
-    public (Node Current, Direction Next) Navigate(Node entry, Direction direction)
+    public (Node? Current, Direction Next) Navigate(Node? entry, Direction direction)
     {
         var current = Next(entry, direction);
         var inbound = Opposite(direction);
@@ -275,7 +280,7 @@ internal class Maze
     {
         var nodes = new List<Node>();
 
-        var current = Starting;
+        Node? current = Starting;
         var next = StartingDirections[0];
 
         current.IsPath = true;
@@ -285,7 +290,7 @@ internal class Maze
         {
             (current, next) = Navigate(current, next);
 
-            if (current.IsStarting)
+            if (current == null || current.IsStarting)
             {
                 break;
             }
