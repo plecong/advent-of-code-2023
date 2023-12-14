@@ -21,61 +21,73 @@ internal record Record(char[] Positions, int[] Groups)
             string.Join(',', Enumerable.Repeat(splits[1], 5).ToArray()).Split(',').Select(int.Parse).ToArray());
     }
 
-    public bool Valid(char[] value)
+    public long CountCandidates()
     {
-        return Positions.Zip(value).All(pair => pair.First == pair.Second || pair.First == '?');
-    }
+        Dictionary<(int, int), long> cache = new();
+        return _CountCandidates(Positions, Groups);
 
-    public IEnumerable<int[]> GenerateGaps()
-    {
-        var length = Groups.Length + 1;
-        var target = Positions.Length - Groups.Sum();
-        return _GenerateSpaces(new int[length], 0, 0);
-
-        IEnumerable<int[]> _GenerateSpaces(int[] combo, int index, int current)
+        // recursively parse the characters and match with groups
+        long _CountCandidates(char[] chars, int[] groups)
         {
-            if (index == length)
+            var key = (chars.Length, groups.Length);
+            if (cache.ContainsKey(key))
             {
-                if (current == target)
-                {
-                    yield return combo.ToArray();
-                }
-                yield break;
+                return cache[key];
             }
 
-            var start = (index == 0 || index == length - 1) ? 0 : 1;
-            for (var i = start; i <= target - current; i++)
+            // base case - ran out of groups
+            if (groups.Length == 0)
             {
-                combo[index] = i;
-                foreach (var result in _GenerateSpaces(combo, index + 1, current + i))
-                {
-                    yield return result;
-                }
+                return chars.Any(x => x == '#') ? 0 : 1;
             }
-        }
-    }
 
-    public IEnumerable<char[]> GenerateCandidates()
-    {
-        return _GenerateCandidates().Where(Valid);
-
-        IEnumerable<char[]> _GenerateCandidates()
-        {
-            var gaps = GenerateGaps().ToList();
-
-            foreach (var gap in gaps)
+            // not more characters for groups - not valid
+            if (chars.Length == 0)
             {
-                List<char> candidate = new();
+                return 0;
+            }
 
-                for (var i = 0; i < gap.Length - 1; i++)
+            var current = chars[0];
+            var group = groups[0];
+
+            if (current == '.')
+            {
+                return _CountCandidates(chars[1..], groups);
+            }
+
+            if (current == '#' || current == '?')
+            {
+                // not enough chars - not valid
+                if (chars.Length < group)
                 {
-                    candidate.AddRange(Enumerable.Repeat('.', gap[i]));
-                    candidate.AddRange(Enumerable.Repeat('#', Groups[i]));
+                    return 0;
                 }
 
-                candidate.AddRange(Enumerable.Repeat('.', gap[^1]));
-                yield return candidate.ToArray();
+                // all group are spring or wilcard, followed by space or wildcard
+                if (chars[0..group].All(x => x == '#' || x == '?'))
+                {
+                    if (chars.Length == group)
+                    {
+                        return groups.Length == 1 ? 1 : 0;
+                    }
+
+                    if (chars[group] == '?' || chars[group] == '.')
+                    {
+                        // can consume - valid
+                        var value = _CountCandidates(chars[(group + 1)..], groups[1..]);
+                        if (current == '?')
+                        {
+                            value += _CountCandidates(chars[1..], groups);
+                        }
+                        cache[key] = value;
+                        return value;
+                    }
+                }
+
+                return current == '?' ? _CountCandidates(chars[1..], groups) : 0; ;
             }
+
+            throw new ArgumentException();
         }
     }
 }
@@ -85,14 +97,14 @@ internal class Solution()
     public long Part1(IEnumerable<string> input) =>
         input
             .Select(Record.Parse)
-            .Select(x => x.GenerateCandidates().Count())
+            .Select(x => x.CountCandidates())
             .Sum();
 
 
     public long Part2(IEnumerable<string> input) =>
         input
             .Select(Record.ParseFolded)
-            .Select(x => x.GenerateCandidates().Count())
+            .Select(x => x.CountCandidates())
             .Sum();
 }
 
@@ -119,11 +131,11 @@ public class Test()
 
     [Fact]
     public void Part1SampleLine1() =>
-        Assert.Single(Record.Parse("???.### 1,1,3").GenerateCandidates());
+        Assert.Equal(1, Record.Parse("???.### 1,1,3").CountCandidates());
 
     [Fact]
     public void Part1SampleLine2() =>
-        Assert.Equal(4, Record.Parse(".??..??...?##. 1,1,3").GenerateCandidates().Count());
+        Assert.Equal(4, Record.Parse(".??..??...?##. 1,1,3").CountCandidates());
 
     [Fact]
     public void Part1Sample() =>
@@ -138,6 +150,30 @@ public class Test()
         Assert.Equal(525152, solution.Part2(Sample));
 
     [Fact]
+    public void Part2SampleLine1() =>
+        Assert.Equal(1, Record.ParseFolded("???.### 1,1,3").CountCandidates());
+
+    [Fact]
+    public void Part2SampleLine2() =>
+        Assert.Equal(16384, Record.ParseFolded(".??..??...?##. 1,1,3").CountCandidates());
+
+    [Fact]
+    public void Part2SampleLine3() =>
+        Assert.Equal(1, Record.ParseFolded("?#?#?#?#?#?#?#? 1,3,1,6").CountCandidates());
+
+    [Fact]
+    public void Part2SampleLine4() =>
+        Assert.Equal(16, Record.ParseFolded("????.#...#... 4,1,1").CountCandidates());
+
+    [Fact]
+    public void Part2SampleLine5() =>
+        Assert.Equal(2500, Record.ParseFolded("????.######..#####. 1,6,5").CountCandidates());
+
+    [Fact]
+    public void Part2SampleLine6() =>
+        Assert.Equal(506250, Record.ParseFolded("?###???????? 3,2,1").CountCandidates());
+
+    [Fact]
     public void Part2() =>
-        Assert.Equal(0, solution.Part2(Input));
+        Assert.Equal(1_088_006_519_007, solution.Part2(Input));
 }
