@@ -2,6 +2,13 @@
 
 public static class Extensions
 {
+    public static string[] Transpose(this string[] values)
+    {
+        return Enumerable.Range(0, values[0].Length)
+            .Select(col => new string(values.Select(row => row[col]).ToArray()))
+            .ToArray();
+    }
+
     public static void Deconstruct<T>(this IList<T> list, out T first, out IList<T> rest)
     {
 

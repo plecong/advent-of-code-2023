@@ -64,24 +64,15 @@ internal record Record(char[] Positions, int[] Groups)
                 }
 
                 // all group are spring or wilcard, followed by space or wildcard
-                if (chars[0..group].All(x => x == '#' || x == '?'))
+                if (chars[0..group].All(x => x == '#' || x == '?')
+                    && (chars.Length == group || chars[group] == '?' || chars[group] == '.'))
                 {
-                    if (chars.Length == group)
-                    {
-                        return groups.Length == 1 ? 1 : 0;
-                    }
-
-                    if (chars[group] == '?' || chars[group] == '.')
-                    {
-                        // can consume - valid
-                        var value = _CountCandidates(chars[(group + 1)..], groups[1..]);
-                        if (current == '?')
-                        {
-                            value += _CountCandidates(chars[1..], groups);
-                        }
-                        cache[key] = value;
-                        return value;
-                    }
+                    // can consume - valid
+                    var value =
+                        (current == '?' ? _CountCandidates(chars[1..], groups) : 0)
+                        + _CountCandidates(chars[Math.Min(chars.Length, group + 1)..], groups[1..]);
+                    cache[key] = value;
+                    return value;
                 }
 
                 return current == '?' ? _CountCandidates(chars[1..], groups) : 0; ;
