@@ -2,7 +2,6 @@
 
 using Xunit;
 using AdventOfCode2023.Utils;
-using System.Data;
 
 internal enum Direction
 {
@@ -20,11 +19,14 @@ internal record Beam(int Row, int Col, Direction Direction)
         {
             // empty space continues same direction
             (var d, '.') => (this.Go(d), null),
-            // mirrors
+
+            // mirror /
             (Direction.UP, '/') => (this.Go(Direction.RIGHT), null),
             (Direction.RIGHT, '/') => (this.Go(Direction.UP), null),
             (Direction.DOWN, '/') => (this.Go(Direction.LEFT), null),
             (Direction.LEFT, '/') => (this.Go(Direction.DOWN), null),
+
+            // mirror \
             (Direction.UP, '\\') => (this.Go(Direction.LEFT), null),
             (Direction.RIGHT, '\\') => (this.Go(Direction.DOWN), null),
             (Direction.DOWN, '\\') => (this.Go(Direction.RIGHT), null),
@@ -67,15 +69,10 @@ internal class Contraption(IEnumerable<string> input)
     private readonly Node[][] grid =
         input.Select(x => x.Select(y => new Node(y)).ToArray()).ToArray();
 
-    public IEnumerable<Node> Nodes
-    {
-        get => grid.SelectMany(x => x);
-    }
-
     public bool Valid(Beam beam) =>
         !(beam.Row < 0 || beam.Row >= grid.Length) && !(beam.Col < 0 || beam.Col >= grid[beam.Row].Length);
 
-    public Contraption Run(Beam init)
+    public int CountEnergized(Beam init)
     {
         // keep stack of beams to process and capture splits
         Stack<Beam> beams = new();
@@ -88,32 +85,31 @@ internal class Contraption(IEnumerable<string> input)
         while (beams.Count > 0)
         {
             var current = beams.Pop();
-            var active = true;
-            while (active)
+            while (true)
             {
                 if (!Valid(current) || cache.Contains(current))
                 {
-                    active = false;
+                    break;
                 }
-                else
+
+                // valid and not in cache, so remember it
+                cache.Add(current);
+
+                // we encounter node and get the next beam
+                var node = grid[current.Row][current.Col];
+                var (next, other) = current.Encounter(node);
+
+                // push any split beams onto stack 
+                if (other != null)
                 {
-                    // valid and not in cache, so remember it
-                    cache.Add(current);
-
-                    // we encounter node and get the next beam
-                    var (next, other) = current.Encounter(grid[current.Row][current.Col]);
-                    current = next;
-
-                    // push any split beams onto stack 
-                    if (other != null)
-                    {
-                        beams.Push(other);
-                    }
+                    beams.Push(other);
                 }
+
+                current = next;
             }
         }
 
-        return this;
+        return grid.SelectMany(x => x).Count(x => x.Energized);
     }
 
     public IEnumerable<Beam> GetEdgeBeams()
@@ -139,20 +135,17 @@ internal class Contraption(IEnumerable<string> input)
 
 internal class Solution()
 {
-    public int Part1(IEnumerable<string> input)
-    {
+    public int Part1(IEnumerable<string> input) =>
         // start top-left in right direction
-        var init = new Beam(0, 0, Direction.RIGHT);
-        return new Contraption(input).Run(init).Nodes.Count(x => x.Energized);
-    }
+        new Contraption(input).CountEnergized(new Beam(0, 0, Direction.RIGHT));
 
     public int Part2(IEnumerable<string> input)
     {
         var lines = input.ToArray();
         var contraption = new Contraption(lines);
-        var inits = contraption.GetEdgeBeams();
-
-        return inits.Select(x => new Contraption(lines).Run(x).Nodes.Count(x => x.Energized)).Max();
+        return contraption.GetEdgeBeams()
+            .Select(x => new Contraption(lines).CountEnergized(x))
+            .Max();
     }
 }
 
