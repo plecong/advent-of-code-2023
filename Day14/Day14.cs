@@ -1,4 +1,4 @@
-﻿namespace AdventOfCode2023.Day13;
+﻿namespace AdventOfCode2023.Day14;
 
 using Xunit;
 using AdventOfCode2023.Utils;
