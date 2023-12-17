@@ -16,7 +16,7 @@ internal partial record Step(string Code)
     public string Label { get; init; } = MyRegex().Match(Code).Groups["Label"].Value;
     public int Box { get => Solution.Hash(Label); }
     public Op Op { get => Code[Label.Length] == '=' ? Op.Insert : Op.Remove; }
-    public Lens? Lens { get => new Lens(Label, int.Parse(Code.Substring(Label.Length + 1))); }
+    public Lens? Lens { get => new(Label, int.Parse(Code[(Label.Length + 1)..])); }
 
     [GeneratedRegex(@"^(?<Label>\w+)")]
     private static partial Regex MyRegex();
@@ -26,13 +26,13 @@ internal record Lens(string Label, int FocalLength);
 
 internal class HashMap
 {
-    private List<Lens>[] boxes = new List<Lens>[256];
+    private readonly List<Lens>[] boxes = new List<Lens>[256];
 
     public HashMap()
     {
         for (var i = 0; i < boxes.Length; i++)
         {
-            boxes[i] = new List<Lens>();
+            boxes[i] = [];
         }
     }
 
@@ -99,7 +99,7 @@ internal class Solution()
 
 public class Test()
 {
-    private Solution solution = new();
+    private readonly Solution solution = new();
 
     public IEnumerable<string> Sample
     {
