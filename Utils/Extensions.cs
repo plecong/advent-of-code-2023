@@ -1,4 +1,6 @@
-﻿namespace AdventOfCode2023.Utils;
+﻿using System.Security.Cryptography.X509Certificates;
+
+namespace AdventOfCode2023.Utils;
 
 public static class Extensions
 {
@@ -74,3 +76,83 @@ public static class Extensions
     }
 }
 
+public enum Direction
+{
+    UP,
+    LEFT,
+    DOWN,
+    RIGHT,
+    NONE
+}
+
+public static class EnumExtensions
+{
+    public static Direction Opposite(this Direction direction)
+    {
+        return direction switch
+        {
+            Direction.UP => Direction.DOWN,
+            Direction.DOWN => Direction.UP,
+            Direction.LEFT => Direction.RIGHT,
+            Direction.RIGHT => Direction.LEFT,
+            Direction.NONE => Direction.NONE,
+            _ => throw new ArgumentOutOfRangeException()
+        };
+    }
+
+    public static char AsChar(this Direction direction)
+    {
+        return direction switch
+        {
+            Direction.UP => '^',
+            Direction.DOWN => 'v',
+            Direction.LEFT => '<',
+            Direction.RIGHT => '>',
+            _ => throw new ArgumentOutOfRangeException()
+
+        };
+    }
+}
+
+public class Grid<T>(T[][] grid)
+{
+    private readonly T[][] grid = grid;
+
+    public Grid(IEnumerable<string> input, Func<char, int, int, T> convert)
+        : this(input.Select((x, row) => x.Select((y, col) => convert(y, row, col)).ToArray()).ToArray())
+    {
+
+    }
+
+    public IEnumerable<T> Nodes
+    {
+        get => grid.SelectMany(x => x);
+    }
+
+    public T[][] Matrix { get => grid; }
+
+    public int Rows { get => grid.Length; }
+    public int Cols { get => grid.Length > 0 ? grid[0].Length : 0; }
+
+    public T? this[(int row, int col) coord]
+    {
+        get
+        {
+            if (coord.row < 0 || coord.row >= grid.Length) return default;
+            if (coord.col < 0 || coord.col >= grid[coord.row].Length) return default;
+            return grid[coord.row][coord.col];
+        }
+    }
+
+    public (int Row, int Col) Go(int Row, int Col, Direction direction)
+    {
+        return direction switch
+        {
+            Direction.UP => (Row - 1, Col),
+            Direction.RIGHT => (Row, Col + 1),
+            Direction.DOWN => (Row + 1, Col),
+            Direction.LEFT => (Row, Col - 1),
+            _ => throw new NotImplementedException(),
+        };
+    }
+}
