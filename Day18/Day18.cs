@@ -36,7 +36,7 @@ internal partial record Instruction(Direction Direction, long Steps, string Colo
             _ => throw new ArgumentException()
         };
 
-        return new Instruction(direction, (int)hex, Color);
+        return new Instruction(direction, hex, Color);
 
     }
 
@@ -74,7 +74,7 @@ internal class Solution()
             .ToArray();
 
         // calculate edges from coordinates
-        var edges = coords.Zip(coords.Skip(1), (a, b) => new Edge(a.x, a.y, b.x, b.y)).ToArray();
+        var edges = coords.Zip(coords.Skip(1), (a, b) => new Edge(a.x, a.y, b.x, b.y));
         return edges.Sum(x => x.Area + x.Distance) / 2 + 1;
     }
 
