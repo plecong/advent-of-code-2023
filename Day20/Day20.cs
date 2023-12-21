@@ -17,6 +17,12 @@ internal class Orchestrator(IEnumerable<string> input)
     private readonly Dictionary<string, Module> modules = Parse(input);
     private readonly Queue<PulseEvent> pending = new();
 
+    static long GreatestCommonFactor(long a, long b) =>
+        b == 0 ? a : GreatestCommonFactor(b, a % b);
+
+    static long LeastCommonMultiple(long a, long b) =>
+        a / GreatestCommonFactor(a, b) * b;
+
     public void Enqueue(PulseEvent pulse)
     {
         pending.Enqueue(pulse);
@@ -43,6 +49,34 @@ internal class Orchestrator(IEnumerable<string> input)
         }
 
         return low * high;
+    }
+
+    public long FindRxLow()
+    {
+        List<string> nandNames = ["fv", "kk", "vt", "xr"];
+        Dictionary<string, long> cycles = new();
+
+        // find the cycle for when each of the critical nand
+        // gates turns off
+        for (long i = 0; i < long.MaxValue; i++)
+        {
+            var events = PushButton();
+
+            foreach (var nand in nandNames)
+            {
+                if (events.Any(x => x.Destination == nand && x.Pulse == Pulse.LOW))
+                {
+                    cycles[nand] = i + 1;
+                }
+            }
+
+            if (cycles.Count == nandNames.Count)
+            {
+                break;
+            }
+        }
+
+        return cycles.Values.Aggregate(LeastCommonMultiple);
     }
 
     public List<PulseEvent> PushButton()
@@ -227,7 +261,8 @@ internal class Solution()
 
     public long Part2(IEnumerable<string> input)
     {
-        return 0;
+        var orchestrator = new Orchestrator(input);
+        return orchestrator.FindRxLow();
     }
 }
 
@@ -376,10 +411,6 @@ public class Test()
         Assert.Equal(867_118_762, solution.Part1(Input));
 
     [Fact]
-    public void Part2Sample() =>
-        Assert.Equal(0, solution.Part2(Sample));
-
-    [Fact]
     public void Part2() =>
-        Assert.Equal(0, solution.Part2(Input));
+        Assert.Equal(217_317_393_039_529, solution.Part2(Input));
 }

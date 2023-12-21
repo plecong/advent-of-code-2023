@@ -1,0 +1,43 @@
+rx(L)
+    &sq(H)
+        &fv(L)
+            &vm(H)
+                %zc - %lz
+                %lz - %jt
+                %jt - %fz
+                %fz - %fk(2) - %nn(3) - %dl(1) - %pv
+                %pv - %lg(5) - %vb
+                %vb - %gr
+                %gr - %gd(4)
+                %gd - b
+        &kk(L)
+            &kb(H)
+                %nf
+                %zq
+                %pq
+                %dm
+                %ds
+                %fl
+                %zl
+                %nc
+                %gt - b
+        &vt(L)
+            &dn(H)
+                %df
+                %ln
+                %rn
+                %jh
+                %pf
+                %hf
+                %tv - %tg - %kg
+                %kg - b
+        &xr(L)
+            &vk(H)
+                %xf
+                %sb
+                %pp
+                %kq
+                %ph
+                %gf
+                %md
+                %lf - b
