@@ -99,7 +99,7 @@ internal record Workflow(string Name, List<Rule> Rules)
     }
 
     public Outcome Process(Part part) =>
-        Rules.Find(x => x.Matches(part)).Apply(part);
+        (Rules.Find(x => x.Matches(part)) ?? Rules.Last()).Apply(part);
 
 }
 
@@ -179,7 +179,6 @@ internal class Solution()
 
         return chunks[1].Select(Part.Parse).Where(x => engine.Accepted(x)).Sum(x => x.Ratings);
     }
-
 
     public long Part2(IEnumerable<string> input)
     {
